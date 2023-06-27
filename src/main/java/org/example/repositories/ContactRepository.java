@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface ContactRepository {
 
-    void addBook(Contact contacts);
+    void addContact(Contact contacts);
 
-    void editBook(Contact old_contact, Contact new_contact);
+    void editContact(Contact old_contact, Contact new_contact);
 
-    void deleteBook(Contact contacts);
+    void deleteContact(Contact contacts);
 
     List<Contact> searchContact(String criterion);
 

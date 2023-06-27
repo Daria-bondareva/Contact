@@ -11,22 +11,22 @@ public class AppContactRepository implements ContactRepository {
     private final List<Contact> contacts;
     public AppContactRepository(ContactsDataSource contactsDataSource, List<Contact> contacts) {
         this.contactsDataSource = contactsDataSource;
-        this.contacts = contacts;
+        this.contacts = contacts != null ? contacts : new ArrayList<>();
     }
 
     @Override
-    public void addBook(Contact contact) {
+    public void addContact(Contact contact) {
         contacts.add(contact);
     }
 
     @Override
-    public void editBook(Contact old_contact, Contact new_contact) {
+    public void editContact(Contact old_contact, Contact new_contact) {
         int index = contacts.indexOf(old_contact);
         contacts.set(index, new_contact);
     }
 
     @Override
-    public void deleteBook(Contact contact) {
+    public void deleteContact(Contact contact) {
         contacts.remove(contact);
     }
 
