@@ -5,11 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3aae7cf5-cd65-4c6e-8154-2c9e3fbea47f" name="Changes" comment="Init project">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/models/LocalDateAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/models/ContactsDataSource.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/models/ContactsDataSource.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/converters/JsonConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/converters/JsonConverter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/models/FullName.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/models/FullName.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/models/LocalDateAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/models/LocalDateAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/models/PhoneNumberType.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/repositories/AppContactRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/repositories/AppContactRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/repositories/ContactRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/repositories/ContactRepository.java" afterDir="false" />
     </list>
@@ -72,7 +73,14 @@
       <option name="project" value="LOCAL" />
       <updated>1687730367049</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Init project">
+      <created>1687903774502</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1687903774502</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -80,5 +88,15 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="Init project" />
     <option name="LAST_COMMIT_MESSAGE" value="Init project" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.time.format.DateTimeParseException" package="java.time.format" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

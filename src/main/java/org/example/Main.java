@@ -13,173 +13,238 @@ import org.example.repositories.ContactRepository;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
+import static java.nio.file.Path.*;
+
 public class Main {
-    private static final String JSON_FILE_PATH = "contacts.json";
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final String DATA_FILE_PATH = "contacts.json";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
     public static void main(String[] args) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
                 .create();
         JsonConverter gsonConverter = new GsonConverter(gson);
-        Path filePath = Paths.get(JSON_FILE_PATH);
-        if(!Files.exists(filePath)){
-            try{
-                Files.createFile(filePath);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        ContactsDataSource contactsDataSource = new ContactsDataSource(gsonConverter, filePath);
+        Path pathFile = of(DATA_FILE_PATH);
+        ContactsDataSource contactsDataSource = new ContactsDataSource(gsonConverter, pathFile);
+        if (!Files.exists(pathFile)) contactsDataSource.writeContacts(List.of());
         List<Contact> contacts = contactsDataSource.readContacts();
-        ContactRepository contactRepository = new AppContactRepository(contactsDataSource, contacts != null ? contacts : new ArrayList<>());
-        while (true){
-            System.out.println("""
-                    Меню:
-                    0. Вийти 
-                    1. Додати контакт
-                    2. Редагувати контакт 
-                    3. Видалити контакт
-                    4. Пошук контакту
-                    5. Сортування контактів
-                    """);
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+        ContactRepository contactRepository = new AppContactRepository(contactsDataSource, contacts);
+        Scanner scanner = new Scanner(System.in);
 
-            switch (choice){
-                case 0 -> System.exit(0);
-                case 1 -> addContact(contactRepository);
-                case 2 -> editContact(contactRepository);
-                case 3 -> deleteContact(contactRepository);
-                case 4 -> searchContact(contactRepository);
-                case 5 -> sortContacts(contactRepository);
-                default -> System.out.println("Будь ласка, виберіть існуючий номер дії");
+        while (true) {
+            System.out.print("""
+                            Меню:
+                            0. Вийти з програми
+                            1. Додати контакт
+                            2. Редагувати контакт
+                            3. Видалити контакт
+                            4. Пошук контакту
+                            5. Сортування контактів
+                            6. Усі контакти
+                            """);
+            System.out.print("Введіть номер операції: ");
+            String choice = scanner.nextLine();
+
+            switch (choice) {
+                case "0" -> System.exit(0);
+                case "1" -> addContact(scanner, contactRepository);
+                case "2" -> editContact(scanner, contactRepository);
+                case "3" -> deleteContact(scanner, contactRepository);
+                case "4" -> searchContact(scanner, contactRepository);
+                case "5" -> sortContacts(contactRepository);
+                case "6" -> showAllContacts(contactRepository);
+                default -> System.out.println("Неправильний вибір. Спробуйте ще раз.");
             }
+            System.out.println();
         }
     }
-    private static void addContact(ContactRepository contactRepository){
-        System.out.println("Введіть ім'я:");
+
+    private static void addContact(Scanner scanner, ContactRepository contactRepository) {
+        System.out.print("Введіть ім'я: ");
         String name = scanner.nextLine();
-        System.out.println("Введіть прізвище:");
+
+        System.out.print("Введіть прізвище: ");
         String surname = scanner.nextLine();
-        System.out.println("Введіть номер телефону:");
+
+        System.out.print("Введіть номер телефону: ");
         String phoneNumber = scanner.nextLine();
-        System.out.println("Введіть електронну пошту:");
+
+        System.out.print("Введіть електронну адресу: ");
         String email = scanner.nextLine();
-        System.out.println("Введіть дату народження (у форматі yyyy-MM-dd):");
+
+        System.out.print("Введіть дату народження (у форматі dd.MM.yyyy): ");
         String birthdayString = scanner.nextLine();
-        LocalDate birthday = LocalDate.parse(birthdayString);
-        System.out.println("Введіть адресу:");
+        LocalDate birthday = LocalDate.parse(birthdayString, DATE_FORMATTER);
+
+        System.out.print("Введіть адресу: ");
         String address = scanner.nextLine();
 
         Contact newContact = new Contact(new FullName(name, surname), phoneNumber, email, birthday, address);
         contactRepository.addContact(newContact);
+
         contactRepository.saveChanges();
-        System.out.println("Контакт додано.");
+        System.out.println("Контакт успішно доданий.");
     }
-    private static void editContact(ContactRepository contactRepository){
-        System.out.println("Введіть ім'я контакта, яке хочете відредагувати: ");
+
+    private static void editContact(Scanner scanner, ContactRepository contactRepository) {
+        System.out.print("Введіть ім'я контакту, який потрібно редагувати: ");
         String searchName = scanner.nextLine();
-        List<Contact> searchResult = contactRepository.searchContact(searchName);
 
-        if(searchResult.isEmpty()){
-            System.out.println("Контакта з таким іменем не існує.");
-        } else{
-            System.out.println("Знайдені контакти: ");
-            displayContacts(searchResult);
+        List<Contact> searchResults = contactRepository.searchContact(searchName);
 
-            System.out.println("Введіть номер контакта, який потрібно змінити: ");
-            int contactIndex = scanner.nextInt();
+        if (!searchResults.isEmpty()) {
+            System.out.println("Знайдено " + searchResults.size() + " контакт(ів).");
+            System.out.println("Виберіть номер контакту для редагування:");
+
+            for (int i = 0; i < searchResults.size(); i++) {
+                Contact contact = searchResults.get(i);
+                System.out.println((i + 1) + ". " + contact.fullName().name() + " " + contact.fullName().surName());
+            }
+
+            int choice = scanner.nextInt();
             scanner.nextLine();
 
-            if(contactIndex >= 0 && contactIndex < searchResult.size()){
-                Contact oldContact = searchResult.get(contactIndex);
+            if (choice >= 1 && choice <= searchResults.size()) {
+                Contact selectedContact = searchResults.get(choice - 1);
 
-                System.out.println("Введіть нове ім'я:");
-                String newName = scanner.nextLine();
-                System.out.println("Введіть нове прізвище:");
-                String newSurname = scanner.nextLine();
-                System.out.println("Введіть новий номер телефону:");
+                System.out.print("Введіть нове ім'я: ");
+                String name = scanner.nextLine();
+
+                System.out.print("Введіть нове прізвище: ");
+                String surname = scanner.nextLine();
+
+                System.out.print("Введіть новий номер телефону: ");
                 String newPhoneNumber = scanner.nextLine();
-                System.out.println("Введіть нову електронну пошту:");
-                String newEmail = scanner.nextLine();
-                System.out.println("Введіть нову дату народження (у форматі yyyy-MM-dd):");
-                String newBirthdayString = scanner.nextLine();
-                LocalDate newBirthday = LocalDate.parse(newBirthdayString);
-                System.out.println("Введіть нову адресу:");
-                String newAddress = scanner.nextLine();
 
-                Contact newContact = new Contact(new FullName(newName, newSurname), newPhoneNumber, newEmail, newBirthday, newAddress);
-                contactRepository.editContact(oldContact, newContact);
+                System.out.print("Введіть нову електронну адресу: ");
+                String email = scanner.nextLine();
+
+                System.out.print("Введіть нову дату народження (у форматі dd.MM.yyyy): ");
+                String birthdayString = scanner.nextLine();
+                LocalDate birthday = LocalDate.parse(birthdayString, DATE_FORMATTER);
+
+                System.out.print("Введіть нову адресу: ");
+                String address = scanner.nextLine();
+
+                Contact updatedContact = new Contact(new FullName(name, surname), newPhoneNumber, email, birthday, address);
+                contactRepository.editContact(selectedContact, updatedContact);
                 contactRepository.saveChanges();
-                System.out.println("Контакт відредаговано. ");
-
-            } else{
-                System.out.println("Невірно набраний номер контакта.");
+                System.out.println("Контакт успішно оновлений.");
+            } else {
+                System.out.println("Неправильний вибір контакту.");
             }
+        } else {
+            System.out.println("Контакти з таким номером телефону не знайдено.");
         }
     }
-    private static void deleteContact(ContactRepository contactRepository) {
-        System.out.println("Введіть ім'я контакту, який потрібно видалити:");
+
+    private static void deleteContact(Scanner scanner, ContactRepository contactRepository) {
+        System.out.print("Введіть ім'я контакту, який потрібно видалити: ");
         String searchName = scanner.nextLine();
-        List<Contact> searchResult = contactRepository.searchContact(searchName);
 
-        if (searchResult.isEmpty()) {
-            System.out.println("Контакти з таким іменем не знайдені.");
-        } else {
-            System.out.println("Знайдені контакти:");
-            displayContacts(searchResult);
+        List<Contact> searchResults = contactRepository.searchContact(searchName);
 
-            System.out.println("Введіть номер контакту, який потрібно видалити:");
-            int contactIndex = scanner.nextInt();
+        if (!searchResults.isEmpty()) {
+            System.out.println("Знайдено " + searchResults.size() + " контакт(ів).");
+            System.out.println("Виберіть номер контакту для видалення:");
+
+            for (int i = 0; i < searchResults.size(); i++) {
+                Contact contact = searchResults.get(i);
+                System.out.println((i + 1) + ". " + contact.fullName().name() + " " + contact.fullName().surName());
+            }
+
+            int choice = scanner.nextInt();
             scanner.nextLine();
 
-            if (contactIndex >= 0 && contactIndex < searchResult.size()) {
-                Contact contactToDelete = searchResult.get(contactIndex);
-                contactRepository.deleteContact(contactToDelete);
+            if (choice >= 1 && choice <= searchResults.size()) {
+                Contact selectedContact = searchResults.get(choice - 1);
+                contactRepository.deleteContact(selectedContact);
                 contactRepository.saveChanges();
-                System.out.println("Контакт видалено.");
+                System.out.println("Контакт успішно видалений.");
             } else {
-                System.out.println("Невірно набраний номер контакта.");
+                System.out.println("Неправильний вибір контакту.");
             }
+        } else {
+            System.out.println("Контакти з таким номером телефону не знайдено.");
         }
     }
 
-    private static void searchContact(ContactRepository contactRepository){
-        System.out.println("Введіть критерій пошуку:");
+    private static void searchContact(Scanner scanner, ContactRepository contactRepository) {
+        System.out.print("Введіть критерій пошуку: ");
         String criterion = scanner.nextLine();
+
         List<Contact> searchResults = contactRepository.searchContact(criterion);
 
-        if(searchResults.isEmpty()){
-            System.out.println("Контакти з таким іменем не знайдені.");
-        } else{
-            System.out.println("Знайдені контакти:");
-            displayContacts(searchResults);
+        if (!searchResults.isEmpty()) {
+            System.out.println("Знайдено " + searchResults.size() + " контакт(ів):");
+
+            for (int i = 0; i < searchResults.size(); i++) {
+                Contact contact = searchResults.get(i);
+                System.out.println("Контакт " + (i + 1) + ":\n" +
+                        "Ім'я: " + contact.fullName().name() + "\n" +
+                        "Прізвище: " + contact.fullName().surName() + "\n" +
+                        "Номер телефону: " + contact.phoneNumber() + "\n" +
+                        "Електронна адреса: " + contact.email() + "\n" +
+                        "Дата народження: " + contact.birthday().format(DATE_FORMATTER) + "\n" +
+                        "Адреса: " + contact.address() + "\n");
+            }
+        } else {
+            System.out.println("Контакти з таким критерієм не знайдено.");
         }
     }
 
-    private static void sortContacts(ContactRepository contactRepository){
-        List<Contact> contacts = contactRepository.searchContact("");
-        contacts.sort((c1, c2) -> c1.fullName().name().compareToIgnoreCase(c2.fullName().name()));
-        displayContacts(contacts);
+    private static void sortContacts(ContactRepository contactRepository) {
+        System.out.println("""
+                        Виберіть поле для сортування:");
+                        1. Ім'я
+                        2. Прізвище
+                        3. Номер телефону
+                        4. Електронна адреса
+                        6. Адреса
+                        5. Дата народження
+                        Введіть номер поля:""");
+
+        Scanner scanner = new Scanner(System.in);
+        String choice = scanner.nextLine();
+
+        Comparator<Contact> comparator;
+
+        switch (choice) {
+            case "1" -> comparator = Comparator.comparing(c -> c.fullName().name().toLowerCase());
+            case "2" -> comparator = Comparator.comparing(c -> c.fullName().surName().toLowerCase());
+            case "3" -> comparator = Comparator.comparing(Contact::phoneNumber);
+            case "4" -> comparator = Comparator.comparing(Contact::email);
+            case "5" -> comparator = Comparator.comparing(Contact::birthday);
+            case "6" -> comparator = Comparator.comparing(Contact::address);
+            default -> {
+                System.out.println("Неправильний вибір поля.");
+                return;
+            }
+        }
+        contactRepository.sortContacts(comparator);
+        System.out.println("Контакти успішно відсортовано.");
+        showAllContacts(contactRepository);
     }
 
-    private static void displayContacts(List<Contact> contacts){
-        for (int i = 0; i < contacts.size(); i++) {
-            Contact contact = contacts.get(i);
-            System.out.println("Контакт " + (i + 1) + ":");
-            System.out.println("Ім'я: " + contact.fullName().name());
-            System.out.println("Прізвище: " + contact.fullName().surName());
-            System.out.println("Номер телефону: " + contact.phoneNumber());
-            System.out.println("Електронна пошта: " + contact.email());
-            System.out.println("Дата народження: " + contact.birthday());
-            System.out.println("Адреса: " + contact.address());
-            System.out.println();
+    private static void showAllContacts(ContactRepository contactRepository) {
+        List<Contact> allContacts = contactRepository.searchContact("");
+        System.out.println("Всі контакти:");
+
+        for (int i = 0; i < allContacts.size(); i++) {
+            Contact contact = allContacts.get(i);
+            System.out.println("Контакт " + (i + 1) + ":\n" +
+                    "Ім'я: " + contact.fullName().name() + "\n" +
+                    "Прізвище: " + contact.fullName().surName() + "\n" +
+                    "Номер телефону: " + contact.phoneNumber() + "\n" +
+                    "Електронна адреса: " + contact.email() + "\n" +
+                    "Дата народження: " + contact.birthday().format(DATE_FORMATTER) + "\n" +
+                    "Адреса: " + contact.address() + "\n");
         }
     }
 }

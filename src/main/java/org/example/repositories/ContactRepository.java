@@ -2,6 +2,7 @@ package org.example.repositories;
 
 import org.example.models.Contact;
 
+import java.util.Comparator;
 import java.util.List;
 
 public interface ContactRepository {
@@ -13,6 +14,7 @@ public interface ContactRepository {
     void deleteContact(Contact contacts);
 
     List<Contact> searchContact(String criterion);
+    void sortContacts(Comparator<Contact> comparator);
 
     void saveChanges();
 }

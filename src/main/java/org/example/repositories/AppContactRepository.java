@@ -4,6 +4,7 @@ import org.example.models.Contact;
 import org.example.models.ContactsDataSource;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class AppContactRepository implements ContactRepository {
@@ -13,7 +14,6 @@ public class AppContactRepository implements ContactRepository {
         this.contactsDataSource = contactsDataSource;
         this.contacts = contacts != null ? contacts : new ArrayList<>();
     }
-
     @Override
     public void addContact(Contact contact) {
         contacts.add(contact);
@@ -35,13 +35,18 @@ public class AppContactRepository implements ContactRepository {
         List<Contact> searchResults = new ArrayList<>();
         for (Contact contact : contacts) {
             if(contact.fullName().name().contains(criterion)||
-            contact.fullName().surName().contains(criterion)||
-            contact.address().contains(criterion)||
-            contact.phoneNumber().contains(criterion)||
-            contact.email().contains(criterion));
+                    contact.fullName().surName().contains(criterion)||
+                    contact.address().contains(criterion)||
+                    contact.phoneNumber().contains(criterion)||
+                    contact.email().contains(criterion));
             searchResults.add(contact);
         }
         return searchResults;
+    }
+
+    @Override
+    public void sortContacts(Comparator<Contact> comparator) {
+        contacts.sort(comparator);
     }
 
     @Override

@@ -10,3 +10,4 @@ public interface JsonConverter {
 
     List<Contact> fromJson(String contacts);
 }
+
