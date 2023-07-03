@@ -34,15 +34,17 @@ public class AppContactRepository implements ContactRepository {
     public List<Contact> searchContact(String criterion) {
         List<Contact> searchResults = new ArrayList<>();
         for (Contact contact : contacts) {
-            if(contact.fullName().name().contains(criterion)||
-                    contact.fullName().surName().contains(criterion)||
-                    contact.address().contains(criterion)||
-                    contact.phoneNumber().contains(criterion)||
-                    contact.email().contains(criterion));
-            searchResults.add(contact);
+            if (contact.fullName().name().contains(criterion) ||
+                    contact.fullName().surName().contains(criterion) ||
+                    contact.address().contains(criterion) ||
+                    contact.phoneNumber().contains(criterion) ||
+                    contact.email().contains(criterion)) {
+                searchResults.add(contact);
+            }
         }
         return searchResults;
     }
+
 
     @Override
     public void sortContacts(Comparator<Contact> comparator) {
